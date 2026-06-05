@@ -6,10 +6,12 @@ on:
     - cron: '0 22 * * *'
 
 jobs:
-  test:
+  ai-news:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test
+      - name: Send test message to Discord
         run: |
-          echo "Workflow is working!"
+          curl -H "Content-Type: application/json" \
+          -d '{"content":"GitHub Actions接続テスト成功"}' \
+          "${{ secrets.DISCORD_WEBHOOK_URL }}"
