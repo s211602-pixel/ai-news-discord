@@ -1,0 +1,15 @@
+name: AI News Discord
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Test
+        run: |
+          echo "Workflow is working!"
