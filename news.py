@@ -13,10 +13,6 @@ rss_url = (
 
 feed = feedparser.parse(rss_url)
 
-message = "🤖【本日の生成AIニュース】\n\n"
-
-medals = ["🥇", "🥈", "🥉"]
-
 priority_keywords = [
     "OpenAI",
     "Anthropic",
@@ -60,12 +56,13 @@ def why_important(title, summary):
     if "agent" in text:
         return "AIエージェントは次世代の主要トレンドとして注目されているため"
 
-    if "llm" in text:
-        return "大規模言語モデルの進化は生成AI全体の性能向上につながるため"
-
     return "生成AI業界の最新動向として注目度が高いため"
 
 entries = sorted(feed.entries, key=score, reverse=True)
+
+medals = ["🥇", "🥈", "🥉"]
+
+embeds = []
 
 for i, entry in enumerate(entries[:3], start=1):
 
@@ -78,23 +75,26 @@ for i, entry in enumerate(entries[:3], start=1):
         summary = summary.replace("続きを読む", "")
         summary = summary.strip()
 
-    if len(summary) > 180:
-        summary = summary[:180] + "..."
+    if len(summary) > 250:
+        summary = summary[:250] + "..."
 
-    message += f"{medals[i-1]} {i}位\n"
-    message += f"{title}\n\n"
+    embeds.append({
+        "title": f"{medals[i-1]} {title}",
+        "url": entry.link,
+        "description": (
+            f"**概要**\n{summary}\n\n"
+            f"**なぜ重要？**\n{why_important(title, summary)}"
+        )
+    })
 
-    if summary:
-        message += f"概要：\n{summary}\n\n"
-
-    message += f"なぜ重要？\n{why_important(title, summary)}\n\n"
-
-    message += f"URL：\n{entry.link}\n\n"
-    message += "────────────\n\n"
+payload = {
+    "content": "🤖 **本日の生成AIニュース**",
+    "embeds": embeds
+}
 
 response = requests.post(
     WEBHOOK_URL,
-    json={"content": message}
+    json=payload
 )
 
 print(response.status_code)
