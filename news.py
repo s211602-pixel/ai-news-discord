@@ -49,6 +49,7 @@ for i, entry in enumerate(entries[:3], start=1):
     title = entry.title
 
     summary = ""
+
     if hasattr(entry, "summary"):
         summary = re.sub("<.*?>", "", entry.summary)
         summary = summary.replace("続きを読む", "")
@@ -57,17 +58,18 @@ for i, entry in enumerate(entries[:3], start=1):
     if len(summary) > 180:
         summary = summary[:180] + "..."
 
-message += f"{medals[i-1]} {i}位\n"
-message += f"{title}\n\n"
+    message += f"{medals[i-1]} {i}位\n"
+    message += f"{title}\n\n"
 
-if summary:
-    message += f"概要：\n{summary}\n\n"
+    if summary:
+        message += f"概要：\n{summary}\n\n"
 
-message += f"URL：\n{entry.link}\n\n"
+    message += f"URL：\n{entry.link}\n\n"
+    message += "────────────\n\n"
 
-message += "────────────\n\n"
-
-requests.post(
+response = requests.post(
     WEBHOOK_URL,
     json={"content": message}
 )
+
+print(response.status_code)
