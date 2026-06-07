@@ -2,6 +2,8 @@ import feedparser
 import requests
 import os
 import re
+from datetime import datetime, timezone, timedelta
+from email.utils import parsedate_to_datetime
 
 WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
 
@@ -56,9 +58,34 @@ def why_important(title, summary):
     if "agent" in text:
         return "AIエージェントは次世代の主要トレンドとして注目されているため"
 
+    if "llm" in text:
+        return "大規模言語モデルの進化は生成AI全体の性能向上につながるため"
+
     return "生成AI業界の最新動向として注目度が高いため"
 
-entries = sorted(feed.entries, key=score, reverse=True)
+# 24時間以内の記事を抽出
+now = datetime.now(timezone.utc)
+recent_entries = []
+
+for entry in feed.entries:
+
+    try:
+        if hasattr(entry, "published"):
+            published = parsedate_to_datetime(entry.published)
+
+            if now - published <= timedelta(hours=24):
+                recent_entries.append(entry)
+
+    except Exception:
+        pass
+
+# 24時間以内の記事が少ない場合は全件対象
+if len(recent_entries) >= 3:
+    target_entries = recent_entries
+else:
+    target_entries = feed.entries
+
+entries = sorted(target_entries, key=score, reverse=True)
 
 medals = ["🥇", "🥈", "🥉"]
 
@@ -88,7 +115,7 @@ for i, entry in enumerate(entries[:3], start=1):
     })
 
 payload = {
-    "content": "🤖 **本日の生成AIニュース**",
+    "content": "🤖 **本日の生成AIニュース（過去24時間中心）**",
     "embeds": embeds
 }
 
